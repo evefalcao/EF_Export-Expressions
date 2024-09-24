@@ -3,36 +3,50 @@ var resourceString =
     orientation:'column', \
     alignment: ['fill', 'top'], \
     pathGroup: Panel { \
-        alignment: ['fill', 'top'], \
+        alignment: ['fill', 'center'], \
         text: 'Export to folder', \
         pathGroupButtons: Group { \
             orientation:'row', \
-            alignment: ['fill', 'top'], \
+            alignment: ['fill', 'center'], \
             pathText: StaticText { \
                 text: '~myPath/folder', \
-                alignment: ['left', 'center'], \
-                justify: 'left' }, \
-            folderDialog: Button { \
-                text: '...' , \
-                preferredSize: [60, 30], \
                 alignment: ['fill', 'center'], \
+                justify: 'left',\
+                minimumSize: [30, 30], \
+            }, \
+            folderDialog: Button { \
+                alignment: ['right', 'center'], \
+                text: '...' , \
             }, \
         }, \
         newFolder: Checkbox { \
-            alignment: ['left', 'fill'], \
+            alignment: ['left', 'center'], \
             text: 'Create New Folder', \
             value: true, \
         }, \
         dropDownGroup: Group { \
             orientation: 'row', \
-            alignment: ['fill', 'fill'], \
+            alignment: ['fill', 'center'], \
             textDropDown: StaticText { \
-                text: 'Target' \
+                alignment: ['fill', 'center'], \
+                text: 'Target:', \
+                minimumSize: [30, 10], \
             }, \
             dropDown: DropDownList { \
-                alignment: ['fill', 'fill'], \
-                properties: { items: ['Active Comp', 'Selected Comps', 'Full Project']}\
+                alignment: ['right', 'center'], \
+                properties: { items: ['Active Comp', 'Selected Comps', 'Full Project'] }\
             }, \
+        }, \
+    }, \
+    progressGroup: Group { \
+        orientation: 'row', \
+        alignment: ['fill', 'top'], \
+        progressLabel: StaticText { text: 'Progress:' }, \
+        myProgressBar: Progressbar { \
+            alignment: ['fill', 'center'], \
+            minvalue: 0, \
+            maxvalue: 100, \
+            value: 0, \
         }, \
     }, \
     applyButton: Button { \
@@ -55,6 +69,9 @@ function createUserInterface(thisObj, userInterfaceString, scriptName){
     if ((pal != null) && (pal instanceof Window)){
         pal.show();
     }
+
+    var dropdown = UI.pathGroup.dropDownGroup.dropDown;
+    dropdown.selection = [0];
 
     return UI;
 }
