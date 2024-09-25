@@ -11,7 +11,7 @@
                     orientation:'row', \
                     alignment: ['fill', 'center'], \
                     pathText: StaticText { \
-                        text: '~myPath/folder', \
+                        text: '~/MyPath/', \
                         alignment: ['fill', 'center'], \
                         justify: 'left',\
                         minimumSize: [30, 30], \
@@ -80,20 +80,22 @@
         return UI;
     }
 
-
-
     var scriptName = "Export Expressions";
     var UI = createUserInterface(this, resourceString, scriptName);
 
     var pathButton = UI.pathGroup.pathGroupButtons.folderDialog;
     var pathText = UI.pathGroup.pathGroupButtons.pathText;
     var newFolderCheckbox = UI.pathGroup.newFolder;
+    var selectedPath, selectedFolder;
+    var separator = "/";
+
     var project = app.project;
     var projectPath = project.file;
     var projectName = projectPath.toString();
     var projItems = project.items;
-    var selectedPath, selectedFolder;
-    var separator = "/";
+    var projSelection = project.selection;
+    var activeComp = project.activeItem;
+    var activeCompLayers = comp.layers;
 
 
     // Check if project is saved
@@ -102,7 +104,6 @@
     } else {
         alert("Save your project to continue.");
     }
-    // alert(filePath)
 
     function updatePathBasedOnCheckbox() {
         if (newFolderCheckbox.value) {
@@ -128,43 +129,18 @@
             selectedPath = filePath;
             pathText.text = selectedPath;
         }
-
-        // if (newFolderCheckbox.value && selectedFolder) {
-        //     selectedPath = selectedFolder.fullName + separator + "Expressions";
-        //     pathText.text = selectedPath;
-
-        // } else if (selectedFolder) {
-        //     selectedPath = selectedFolder.fullName;
-        //     pathText.text = selectedPath;
-
-        // } else {
-        //     selectedPath = filePath;
-        //     pathText.text = selectedPath;
-        //     // alert("No folder selected. The expressions files will be saved next to your project file.");
-        // }
     }
 
     newFolderCheckbox.onClick = function() {
         selectedFolder = (selectedFolder != null) ? selectedFolder : new Folder(filePath);
-        // alert(selectedFolder)
         updatePathBasedOnCheckbox();
-
-        // if (newFolderCheckbox.value) {
-        //     selectedPath = selectedFolder + separator + "Expressions";
-        //     pathText.text = selectedPath;
-        //     // alert(selectedPath)
-        // } else {
-        //     selectedPath = selectedFolder;
-        //     pathText.text = selectedPath;
-        // }
     }
 
+    applyButton.onClick = function() {
+        alert(selectedFolder)
+    }
 
-    // newFolderCheckbox.onClick = function() {
-    //         alert(selectedFolder)
-    // }
-
-    function main() {
+    function exportAllExpressions() {
         var expressions = [];
 
         app.beginUndoGroup("Export Comps Expressions");
@@ -200,6 +176,16 @@
         }
         app.endUndoGroup();
     };
+
+    // function processLayers() {
+    //     for (var layer = 1; layer <= layers.length; layer++) {
+    //         var currentLayer = layers[layer];
+    //         var curLayerName = currentLayer.name;
+    //         var curLayerIndex = currentLayer.index;
+
+    //         processProperty(currentLayer, curLayerName, curLayerIndex, expressions);
+    //     }
+    // }
 
 
     // Supporting functions
@@ -237,6 +223,5 @@
             file.close();
         }
     }
-
 
 })();
