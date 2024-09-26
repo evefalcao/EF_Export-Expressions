@@ -47,7 +47,6 @@
                     alignment: ['fill', 'center'], \
                     minvalue: 0, \
                     maxvalue: 100, \
-                    value: 0, \
                 }, \
             }, \
             applyButton: Button { \
@@ -88,6 +87,8 @@
     var newFolderCheckbox = UI.pathGroup.newFolder;
     var dropDownMenu = UI.pathGroup.dropDownGroup.dropDown;
     var applyButton = UI.applyButton;
+    var progressBar = UI.progressGroup.myProgressBar;
+    progressBar.value = 0;
 
     var selectedPath, selectedFolder;
     var separator = "/";
@@ -95,6 +96,8 @@
     var project = app.project;
     var projectPath = project.file;
     var expressions = [];
+    var totalItemsToExport = 0;
+    var processedItems = 0;
 
     // Get project name
     var fullProjectName = projectPath.toString();
@@ -102,10 +105,9 @@
     var projectName = fullProjectName.substring(lastSlashIndex + 1).replace(".aep", "");
 
 
-    // Check if project is saved
+    // Check if project is saved and define the filePath
     if (projectPath != null) {
-        var filePath = projectPath.toString().replace(/\/[^\/]*$/, "")
-        // var filePath = projectPath.toString().replace(".aep", "");
+        var filePath = projectPath.toString().replace(/\/[^\/]*$/, "");
     } else {
         alert("Save your project to continue.");
     }
@@ -123,7 +125,6 @@
             selectedPath = filePath;
             pathText.text = selectedPath;
         }
-        alert(selectedPath)
     }
 
     newFolderCheckbox.onClick = function() {
@@ -133,7 +134,13 @@
 
     applyButton.onClick = function() {
         var selectedIndex = dropDownMenu.selection.index;
-        var exportPath = selectedPath;
+
+        // Fallback to filePath if selectedPath is undefined
+        if (selectedPath != null) {
+            var exportPath = selectedPath;
+        } else {
+            selectedPath = filePath;
+        }
 
         if (newFolderCheckbox.value) {
             if (!exportPath.includes("\\Expressions")) {
@@ -144,7 +151,9 @@
             }
         }
         exportPath = (expressionsFolder != null) ? expressionsFolder.fullName : selectedPath;
-        alert(exportPath);
+        // alert(exportPath);
+        progressBar.value = 0;
+        processedItems = 0;
 
         if (selectedIndex === 0) { // Active Comp
             exportActiveComp(exportPath, projectName, expressions);
@@ -153,38 +162,54 @@
         } else if (selectedIndex === 2) { // Full Project
             exportAllComps(exportPath, projectName, expressions);
         }
+        
+        // if (progressBar == 100) {
+        //     progressBar.value = 0;
+        // }
+        
+        // alert(totalItemsToExport)
     }
 
     function exportActiveComp(filePath, projectName, expressions) {
         var activeComp = app.project.activeItem;
+        totalItemsToExport = 1;
+        updateProgressBar();  // Update progress
 
         if (activeComp instanceof CompItem) {
             processCompExpressions(activeComp, filePath, projectName, expressions);
         } else {
             alert("Click on the timeline to set the comp as active.");
         }
+        processedItems++;
+        updateProgressBar();
     }
 
     function exportSelectedComps(filePath, projectName, expressions) {
         var projSelection = app.project.selection;
+        totalItemsToExport = projSelection.length;
 
         for (var item = 0; item < projSelection.length; item++) {
             var curItem = projSelection[item];
 
             if (curItem instanceof CompItem) {
                 processCompExpressions(curItem, filePath, projectName, expressions);
+                processedItems++;
+                updateProgressBar();
             }
         }
     }
 
     function exportAllComps(filePath, projectName, expressions) {
         var projItems = app.project.items;
+        totalItemsToExport = projItems.length;
 
         for (var item = 1; item <= projItems.length; item++) {
             var curItem = projItems[item];
 
             if (curItem instanceof CompItem) {
                 processCompExpressions(curItem, filePath, projectName, expressions);
+                processedItems++;
+                updateProgressBar();
             }
         }
     }
@@ -217,6 +242,12 @@
     }
 
     // Supporting functions
+    function updateProgressBar() {
+        if (totalItemsToExport > 0) {
+            progressBar.value = Math.floor((processedItems / totalItemsToExport) * 100);
+        }
+    }
+
     function updatePathBasedOnCheckbox() {
         if (newFolderCheckbox.value) {
             // Checkbox is checked, add "Expressions" folder
