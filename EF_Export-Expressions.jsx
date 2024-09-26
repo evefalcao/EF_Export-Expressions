@@ -78,16 +78,28 @@
     var dropDownMenu = UI.pathGroup.dropDownGroup.dropDown;
     var applyButton = UI.applyButton;
 
-    var selectedPath, selectedFolder;
+    var selectedPath, projectPath, selectedFolder;
     var separator = "/";
 
     var project = app.project;
-    var projectPath = project.file;
     var expressions = [];
-    var totalItemsToExport = 0;
-    var processedItems = 0;
 
-    // Get project name
+    if (project.file != null) {
+        projectPath = project.file;
+    } else {
+        // Prompt the user to save the project
+        alert("Please save your project to continue.");
+        var saveFile = File.saveDialog("Save Project As");
+        
+        if (saveFile != null) {
+            project.save(saveFile);
+            projectPath = project.file;
+        } else {
+            alert("The project must be saved to proceed.");
+            return;
+        }
+    }
+
     var fullProjectName = projectPath.toString();
     var lastSlashIndex = fullProjectName.lastIndexOf(separator);
     var projectName = fullProjectName.substring(lastSlashIndex + 1).replace(".aep", "");
@@ -99,6 +111,8 @@
     } else {
         alert("Save your project to continue.");
     }
+
+    // UI Functions
 
     pathButton.onClick = function() {
         selectedFolder = Folder.selectDialog("Choose a destination folder");
@@ -149,6 +163,8 @@
             exportAllComps(exportPath, projectName, expressions);
         }
     }
+
+    // Primary functions
 
     function exportActiveComp(filePath, projectName, expressions) {
         var activeComp = app.project.activeItem;
@@ -212,6 +228,16 @@
     }
 
     // Supporting functions
+
+    function saveProject() {
+        alert("Save your project to continue.");
+        var saveFile = File.saveDialog("Save Project As");
+        if (saveFile != null) {
+            app.project.save(saveFile); 
+        } else {
+            alert("Project must be saved to continue.");
+        }
+    }
 
     function updatePathBasedOnCheckbox() {
         if (newFolderCheckbox.value) {
