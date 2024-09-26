@@ -11,7 +11,7 @@
                     orientation:'row', \
                     alignment: ['fill', 'center'], \
                     pathText: StaticText { \
-                        text: '~/MyPath/', \
+                        text: '~/Path/', \
                         alignment: ['fill', 'center'], \
                         justify: 'left',\
                         minimumSize: [30, 30], \
@@ -86,35 +86,28 @@
     var pathButton = UI.pathGroup.pathGroupButtons.folderDialog;
     var pathText = UI.pathGroup.pathGroupButtons.pathText;
     var newFolderCheckbox = UI.pathGroup.newFolder;
+    var dropDownMenu = UI.pathGroup.dropDownGroup.dropDown;
+    var applyButton = UI.applyButton;
+
     var selectedPath, selectedFolder;
     var separator = "/";
 
     var project = app.project;
     var projectPath = project.file;
-    var projectName = projectPath.toString();
-    var projItems = project.items;
-    var projSelection = project.selection;
-    var activeComp = project.activeItem;
-    var activeCompLayers = comp.layers;
+    var expressions = [];
+
+    // Get project name
+    var fullProjectName = projectPath.toString();
+    var lastSlashIndex = fullProjectName.lastIndexOf(separator);
+    var projectName = fullProjectName.substring(lastSlashIndex + 1).replace(".aep", "");
 
 
     // Check if project is saved
     if (projectPath != null) {
-        var filePath = projectPath.fullName.toString().replace(/\/[^\/]*$/, "")
+        var filePath = projectPath.toString().replace(/\/[^\/]*$/, "")
+        // var filePath = projectPath.toString().replace(".aep", "");
     } else {
         alert("Save your project to continue.");
-    }
-
-    function updatePathBasedOnCheckbox() {
-        if (newFolderCheckbox.value) {
-            // Checkbox is checked, add "Expressions" folder
-            selectedPath = selectedFolder.fullName + separator + "Expressions";
-        } else {
-            // Checkbox is unchecked, show only the selected folder path
-            selectedPath = selectedFolder.fullName;
-        }
-        // Update the text field
-        pathText.text = selectedPath;
     }
 
     pathButton.onClick = function() {
@@ -124,11 +117,13 @@
         if (selectedFolder) {
             // Update based on checkbox state
             updatePathBasedOnCheckbox();
+            selectedPath = selectedFolder.fullName;
         } else {
             // Fallback if no folder is selected
             selectedPath = filePath;
             pathText.text = selectedPath;
         }
+        alert(selectedPath)
     }
 
     newFolderCheckbox.onClick = function() {
@@ -137,58 +132,103 @@
     }
 
     applyButton.onClick = function() {
-        alert(selectedFolder)
+        var selectedIndex = dropDownMenu.selection.index;
+        var exportPath = selectedPath;
+
+        if (newFolderCheckbox.value) {
+            if (!exportPath.includes("\\Expressions")) {
+                var expressionsFolder = new Folder(exportPath + "\\Expressions");
+                if (!expressionsFolder.exists) {
+                    var created = expressionsFolder.create();
+                }
+            }
+        }
+        exportPath = (expressionsFolder != null) ? expressionsFolder.fullName : selectedPath;
+        alert(exportPath);
+
+        if (selectedIndex === 0) { // Active Comp
+            exportActiveComp(exportPath, projectName, expressions);
+        } else if (selectedIndex === 1) { // Selected Comps
+            exportSelectedComps(exportPath, projectName, expressions);
+        } else if (selectedIndex === 2) { // Full Project
+            exportAllComps(exportPath, projectName, expressions);
+        }
     }
 
-    function exportAllExpressions() {
-        var expressions = [];
+    function exportActiveComp(filePath, projectName, expressions) {
+        var activeComp = app.project.activeItem;
 
-        app.beginUndoGroup("Export Comps Expressions");
+        if (activeComp instanceof CompItem) {
+            processCompExpressions(activeComp, filePath, projectName, expressions);
+        } else {
+            alert("Click on the timeline to set the comp as active.");
+        }
+    }
+
+    function exportSelectedComps(filePath, projectName, expressions) {
+        var projSelection = app.project.selection;
+
+        for (var item = 0; item < projSelection.length; item++) {
+            var curItem = projSelection[item];
+
+            if (curItem instanceof CompItem) {
+                processCompExpressions(curItem, filePath, projectName, expressions);
+            }
+        }
+    }
+
+    function exportAllComps(filePath, projectName, expressions) {
+        var projItems = app.project.items;
+
         for (var item = 1; item <= projItems.length; item++) {
             var curItem = projItems[item];
 
             if (curItem instanceof CompItem) {
-                var curComp = projItems[item];
-                var layers = curComp.layers;
-
-                for (var layer = 1; layer <= layers.length; layer++) {
-                    var currentLayer = layers[layer];
-                    var curLayerName = currentLayer.name;
-                    var curLayerIndex = currentLayer.index;
-
-                    processProperty(currentLayer, curLayerName, curLayerIndex, expressions);
-                }
-
-                if (expressions.length != 0) {
-                    // Add the project and comp name to the first element of the array
-                    var compString = "/*\n\tProject: " + projectName + "\n\tComposition: " + curComp.name + "\n*/";
-                    expressions.unshift(compString);
-
-                    // Join array and save file
-                    var expressionsString = expressions.join("\n\n\n\n");
-                    saveFile(filePath, "Expressions", ".jsx", expressionsString, curComp);
-
-                    // Reset the expressions array
-                    expressions = [];
-                }
-
+                processCompExpressions(curItem, filePath, projectName, expressions);
             }
         }
-        app.endUndoGroup();
-    };
+    }
 
-    // function processLayers() {
-    //     for (var layer = 1; layer <= layers.length; layer++) {
-    //         var currentLayer = layers[layer];
-    //         var curLayerName = currentLayer.name;
-    //         var curLayerIndex = currentLayer.index;
+    function processCompExpressions(comp, filePath, projectName, expressions) {
+        var layers = comp.layers;
+        expressions = [];
 
-    //         processProperty(currentLayer, curLayerName, curLayerIndex, expressions);
-    //     }
-    // }
+        for (var layer = 1; layer <= layers.length; layer++) {
+            var currentLayer = layers[layer];
+            var curLayerName = currentLayer.name;
+            var curLayerIndex = currentLayer.index;
 
+            processProperty(currentLayer, curLayerName, curLayerIndex, expressions);
+        }
+
+        // Only proceed if there are expressions to export
+        if (expressions.length != 0) {
+            // Add project and comp name at the top of the file
+            var compString = "/*\n\tProject: " + projectName + "\n\tComposition: " + comp.name + "\n*/";
+            expressions.unshift(compString);
+
+            // Join the array and save the file
+            var expressionsString = expressions.join("\n\n\n\n");
+            saveFile(filePath, projectName, "Expressions", ".jsx", expressionsString, comp);
+
+            // Reset the expressions array for the next comp
+            expressions = [];
+        }
+    }
 
     // Supporting functions
+    function updatePathBasedOnCheckbox() {
+        if (newFolderCheckbox.value) {
+            // Checkbox is checked, add "Expressions" folder
+            folderPathFeedback = selectedFolder.fullName + separator + "Expressions";
+        } else {
+            // Checkbox is unchecked, show only the selected folder path
+            folderPathFeedback = selectedFolder.fullName;
+        }
+        // Update the text field
+        pathText.text = folderPathFeedback;
+    }
+
     function processProperty(property, curLayerName, curLayerIndex, expressionsList) {
 
         // Pass a layer or a prop
@@ -210,11 +250,17 @@
         }
     }
 
-    function saveFile(filePath, fileSuffix, fileFormat, content, comp) {
+    function saveFile(filePath, projectName, fileSuffix, fileFormat, content, comp) {
         // Prompt to save the file
         var extension = fileFormat;
         var compName = comp.name;
-        var file = new File(filePath + "_" + compName + "_" + fileSuffix + extension);
+
+        // Ensure the path ends with a separator (slash or backslash)
+        if (filePath.charAt(filePath.length - 1) !== "\\" && filePath.charAt(filePath.length - 1) !== "/") {
+            filePath += "\\";  // Use backslash for Windows paths
+        }
+
+        var file = new File(filePath + projectName + "_" + compName + "_" + fileSuffix + extension);
 
         // Write the file
         if (file != null) {
