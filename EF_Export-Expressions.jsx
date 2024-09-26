@@ -39,16 +39,6 @@
                     }, \
                 }, \
             }, \
-            progressGroup: Group { \
-                orientation: 'row', \
-                alignment: ['fill', 'top'], \
-                progressLabel: StaticText { text: 'Progress:' }, \
-                myProgressBar: Progressbar { \
-                    alignment: ['fill', 'center'], \
-                    minvalue: 0, \
-                    maxvalue: 100, \
-                }, \
-            }, \
             applyButton: Button { \
                 text: 'Export', \
                 alignment: ['right', 'bottom'], \
@@ -87,8 +77,6 @@
     var newFolderCheckbox = UI.pathGroup.newFolder;
     var dropDownMenu = UI.pathGroup.dropDownGroup.dropDown;
     var applyButton = UI.applyButton;
-    var progressBar = UI.progressGroup.myProgressBar;
-    progressBar.value = 0;
 
     var selectedPath, selectedFolder;
     var separator = "/";
@@ -151,9 +139,7 @@
             }
         }
         exportPath = (expressionsFolder != null) ? expressionsFolder.fullName : selectedPath;
-        // alert(exportPath);
-        progressBar.value = 0;
-        processedItems = 0;
+
 
         if (selectedIndex === 0) { // Active Comp
             exportActiveComp(exportPath, projectName, expressions);
@@ -162,54 +148,38 @@
         } else if (selectedIndex === 2) { // Full Project
             exportAllComps(exportPath, projectName, expressions);
         }
-        
-        // if (progressBar == 100) {
-        //     progressBar.value = 0;
-        // }
-        
-        // alert(totalItemsToExport)
     }
 
     function exportActiveComp(filePath, projectName, expressions) {
         var activeComp = app.project.activeItem;
-        totalItemsToExport = 1;
-        updateProgressBar();  // Update progress
 
         if (activeComp instanceof CompItem) {
             processCompExpressions(activeComp, filePath, projectName, expressions);
         } else {
             alert("Click on the timeline to set the comp as active.");
         }
-        processedItems++;
-        updateProgressBar();
     }
 
     function exportSelectedComps(filePath, projectName, expressions) {
         var projSelection = app.project.selection;
-        totalItemsToExport = projSelection.length;
 
         for (var item = 0; item < projSelection.length; item++) {
             var curItem = projSelection[item];
 
             if (curItem instanceof CompItem) {
                 processCompExpressions(curItem, filePath, projectName, expressions);
-                processedItems++;
-                updateProgressBar();
             }
         }
     }
 
     function exportAllComps(filePath, projectName, expressions) {
         var projItems = app.project.items;
-        totalItemsToExport = projItems.length;
 
         for (var item = 1; item <= projItems.length; item++) {
             var curItem = projItems[item];
 
             if (curItem instanceof CompItem) {
                 processCompExpressions(curItem, filePath, projectName, expressions);
-                processedItems++;
-                updateProgressBar();
             }
         }
     }
@@ -242,11 +212,6 @@
     }
 
     // Supporting functions
-    function updateProgressBar() {
-        if (totalItemsToExport > 0) {
-            progressBar.value = Math.floor((processedItems / totalItemsToExport) * 100);
-        }
-    }
 
     function updatePathBasedOnCheckbox() {
         if (newFolderCheckbox.value) {
@@ -291,6 +256,7 @@
             filePath += "\\";  // Use backslash for Windows paths
         }
 
+        // var file = new File(filePath + projectName + "_" + compName + "_" + fileSuffix + extension);
         var file = new File(filePath + projectName + "_" + compName + "_" + fileSuffix + extension);
 
         // Write the file
