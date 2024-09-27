@@ -12,6 +12,7 @@
         "group { \
             orientation:'column', \
             alignment: ['fill', 'top'], \
+            minimumSize: [200, 200], \
             pathGroup: Panel { \
                 alignment: ['fill', 'center'], \
                 text: 'Export to folder', \
@@ -43,7 +44,7 @@
                     }, \
                     dropDown: DropDownList { \
                         alignment: ['right', 'center'], \
-                        properties: { items: ['Active Comp', 'Selected Comps', 'Full Project'] } \
+                        properties: { items: ['Active Comp', 'Selected Comps', 'Full Project'] }, \
                     }, \
                 }, \
             }, \
@@ -53,38 +54,45 @@
                 preferredSize: [100, 30], \
             }, \
         }"
+    
+    var pathButton;
+    var pathText;
+    var newFolderCheckbox;
+    var dropDownMenu;
+    var applyButton;
 
     function createUserInterface(thisObj, userInterfaceString, scriptName) {
 
-        var pal = (thisObj instanceof Panel) ? thisObj : new Window("palette", scriptName, undefined, { resizeable: true });
-        if (pal == null) return pal;
-        var UI = pal.add(userInterfaceString);
-        pal.layout.layout(true);
-        pal.layout.resize();
-        pal.onResizing = pal.onResize = function() {
+        var myPanel = (thisObj instanceof Panel) ? thisObj : new Window("palette", scriptName, undefined, { resizeable: true });
+        if (myPanel == null) return myPanel;
+        var UI = myPanel.add(userInterfaceString);
+        myPanel.layout.layout(true);
+        myPanel.layout.resize();
+        myPanel.onResizing = myPanel.onResize = function() {
             this.layout.resize();
         }
 
-        if ((pal != null) && (pal instanceof Window)) {
-            pal.show();
+        if ((myPanel != null) && (myPanel instanceof Window)) {
+            myPanel.center();
+            myPanel.show();
         }
 
-        var pathButton = UI.pathGroup.pathGroupButtons.folderDialog;
-        var pathText = UI.pathGroup.pathGroupButtons.pathText;
-        var newFolderCheckbox = UI.pathGroup.newFolder;
-        var dropDownMenu = UI.pathGroup.dropDownGroup.dropDown;
-        dropDownMenu.selection = [0];
-        var applyButton = UI.applyButton;
-
         // UI Functions
+        pathButton = UI.pathGroup.pathGroupButtons.folderDialog;
+        pathText = UI.pathGroup.pathGroupButtons.pathText;
+        newFolderCheckbox = UI.pathGroup.newFolder;
+        dropDownMenu = UI.pathGroup.dropDownGroup.dropDown;
+        applyButton = UI.applyButton;
+        dropDownMenu.selection = [0];
+
         pathButton.onClick = function() {
             selectedFolder = Folder.selectDialog("Choose a destination folder");
 
             // Update path based on checkbox state
             if (selectedFolder) {
                 // Update based on checkbox state
-                updatePathBasedOnCheckbox();
                 selectedPath = selectedFolder.fullName;
+                updatePathBasedOnCheckbox();
             } else {
                 // Fallback if no folder is selected
                 selectedPath = filePath;
@@ -130,8 +138,10 @@
         return UI;
     }
 
+    var scriptName = "Export Expressions";
+    var UI = createUserInterface(this, resourceString, scriptName);
     var project = app.project;
-    var selectedPath, projectPath, selectedFolder;
+    var selectedPath, projectPath, selectedFolder, filePath;
     var separator = "/";
     var expressions = [];
 
@@ -154,12 +164,14 @@
 
     // Check if project is saved and define the filePath
     if (projectPath != null) {
-        var filePath = projectPath.toString().replace(/\/[^\/]*$/, "");
+        filePath = projectPath.toString().replace(/\/[^\/]*$/, "");
     } else {
         alert("Save your project to continue.");
     }
 
-    // Primary functions
+
+
+    // Primary functions //
     function exportActiveComp(filePath, projectName, expressions) {
         var activeComp = app.project.activeItem;
 
@@ -221,8 +233,7 @@
         }
     }
 
-    // Supporting functions
-
+    // Supporting functions //
     function saveProject() {
         alert("Save your project to continue.");
         var saveFile = File.saveDialog("Save Project As");
@@ -234,6 +245,8 @@
     }
 
     function updatePathBasedOnCheckbox() {
+        var folderPathFeedback;
+
         if (newFolderCheckbox.value) {
             // Checkbox is checked, add "Expressions" folder
             folderPathFeedback = selectedFolder.fullName + separator + "Expressions";
@@ -286,8 +299,5 @@
             file.close();
         }
     }
-
-    var scriptName = "Export Expressions";
-    var UI = createUserInterface(this, resourceString, scriptName);
 
 })(this);
