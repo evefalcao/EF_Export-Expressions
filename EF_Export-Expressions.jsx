@@ -1,5 +1,13 @@
-(function EF_ExportExpressions() {
+/**========================================================================
+ * ?                  EF_Export-Expressions.jsx
+ * @author            Eveline Falcão (https://evelinefalcao.com)
+ * @email             hello@evelinefalcao.com
+ * @version           1.0.0
+ * @createdFor        Adobe After Effects CC 2024 (Version 24.1.0 Build 78)
+ * @description       Export expressions to .jsx files.
+ *========================================================================**/
 
+(function(thisObj) {
     var resourceString =
         "group { \
             orientation:'column', \
@@ -46,12 +54,9 @@
             }, \
         }"
 
-    
     function createUserInterface(thisObj, userInterfaceString, scriptName) {
 
-        var pal = (thisObj instanceof Panel) ? thisObj : new Window("palette", scriptName, undefined, {
-            resizeable: true
-        });
+        var pal = (thisObj instanceof Panel) ? thisObj : new Window("palette", scriptName, undefined, { resizeable: true });
         if (pal == null) return pal;
         var UI = pal.add(userInterfaceString);
         pal.layout.layout(true);
@@ -59,51 +64,93 @@
         pal.onResizing = pal.onResize = function() {
             this.layout.resize();
         }
+
         if ((pal != null) && (pal instanceof Window)) {
             pal.show();
         }
 
-        var dropdown = UI.pathGroup.dropDownGroup.dropDown;
-        dropdown.selection = [0];
+        var pathButton = UI.pathGroup.pathGroupButtons.folderDialog;
+        var pathText = UI.pathGroup.pathGroupButtons.pathText;
+        var newFolderCheckbox = UI.pathGroup.newFolder;
+        var dropDownMenu = UI.pathGroup.dropDownGroup.dropDown;
+        dropDownMenu.selection = [0];
+        var applyButton = UI.applyButton;
+
+        // UI Functions
+        pathButton.onClick = function() {
+            selectedFolder = Folder.selectDialog("Choose a destination folder");
+
+            // Update path based on checkbox state
+            if (selectedFolder) {
+                // Update based on checkbox state
+                updatePathBasedOnCheckbox();
+                selectedPath = selectedFolder.fullName;
+            } else {
+                // Fallback if no folder is selected
+                selectedPath = filePath;
+                pathText.text = selectedPath;
+            }
+        }
+
+        newFolderCheckbox.onClick = function() {
+            selectedFolder = (selectedFolder != null) ? selectedFolder : new Folder(filePath);
+            updatePathBasedOnCheckbox();
+        }
+
+        applyButton.onClick = function() {
+            var selectedIndex = dropDownMenu.selection.index;
+
+            // Fallback to filePath if selectedPath is undefined
+            if (selectedPath != null) {
+                var exportPath = selectedPath;
+            } else {
+                selectedPath = filePath;
+            }
+
+            if (newFolderCheckbox.value) {
+                if (!exportPath.includes("\\Expressions")) {
+                    var expressionsFolder = new Folder(exportPath + "\\Expressions");
+                    if (!expressionsFolder.exists) {
+                        var created = expressionsFolder.create();
+                    }
+                }
+            }
+            exportPath = (expressionsFolder != null) ? expressionsFolder.fullName : selectedPath;
+
+
+            if (selectedIndex === 0) { // Active Comp
+                exportActiveComp(exportPath, projectName, expressions);
+            } else if (selectedIndex === 1) { // Selected Comps
+                exportSelectedComps(exportPath, projectName, expressions);
+            } else if (selectedIndex === 2) { // Full Project
+                exportAllComps(exportPath, projectName, expressions);
+            }
+        }
 
         return UI;
     }
 
-    var scriptName = "Export Expressions";
-    var UI = createUserInterface(this, resourceString, scriptName);
-
-    var pathButton = UI.pathGroup.pathGroupButtons.folderDialog;
-    var pathText = UI.pathGroup.pathGroupButtons.pathText;
-    var newFolderCheckbox = UI.pathGroup.newFolder;
-    var dropDownMenu = UI.pathGroup.dropDownGroup.dropDown;
-    var applyButton = UI.applyButton;
-
+    var project = app.project;
     var selectedPath, projectPath, selectedFolder;
     var separator = "/";
-
-    var project = app.project;
     var expressions = [];
 
     if (project.file != null) {
         projectPath = project.file;
     } else {
         // Prompt the user to save the project
-        alert("Please save your project to continue.");
+        alert("Please save your project to use Export Expressions.");
         var saveFile = File.saveDialog("Save Project As");
         
         if (saveFile != null) {
             project.save(saveFile);
             projectPath = project.file;
-        } else {
-            alert("The project must be saved to proceed.");
-            return;
         }
     }
 
     var fullProjectName = projectPath.toString();
     var lastSlashIndex = fullProjectName.lastIndexOf(separator);
     var projectName = fullProjectName.substring(lastSlashIndex + 1).replace(".aep", "");
-
 
     // Check if project is saved and define the filePath
     if (projectPath != null) {
@@ -112,60 +159,7 @@
         alert("Save your project to continue.");
     }
 
-    // UI Functions
-
-    pathButton.onClick = function() {
-        selectedFolder = Folder.selectDialog("Choose a destination folder");
-
-        // Update path based on checkbox state
-        if (selectedFolder) {
-            // Update based on checkbox state
-            updatePathBasedOnCheckbox();
-            selectedPath = selectedFolder.fullName;
-        } else {
-            // Fallback if no folder is selected
-            selectedPath = filePath;
-            pathText.text = selectedPath;
-        }
-    }
-
-    newFolderCheckbox.onClick = function() {
-        selectedFolder = (selectedFolder != null) ? selectedFolder : new Folder(filePath);
-        updatePathBasedOnCheckbox();
-    }
-
-    applyButton.onClick = function() {
-        var selectedIndex = dropDownMenu.selection.index;
-
-        // Fallback to filePath if selectedPath is undefined
-        if (selectedPath != null) {
-            var exportPath = selectedPath;
-        } else {
-            selectedPath = filePath;
-        }
-
-        if (newFolderCheckbox.value) {
-            if (!exportPath.includes("\\Expressions")) {
-                var expressionsFolder = new Folder(exportPath + "\\Expressions");
-                if (!expressionsFolder.exists) {
-                    var created = expressionsFolder.create();
-                }
-            }
-        }
-        exportPath = (expressionsFolder != null) ? expressionsFolder.fullName : selectedPath;
-
-
-        if (selectedIndex === 0) { // Active Comp
-            exportActiveComp(exportPath, projectName, expressions);
-        } else if (selectedIndex === 1) { // Selected Comps
-            exportSelectedComps(exportPath, projectName, expressions);
-        } else if (selectedIndex === 2) { // Full Project
-            exportAllComps(exportPath, projectName, expressions);
-        }
-    }
-
     // Primary functions
-
     function exportActiveComp(filePath, projectName, expressions) {
         var activeComp = app.project.activeItem;
 
@@ -293,4 +287,7 @@
         }
     }
 
-})();
+    var scriptName = "Export Expressions";
+    var UI = createUserInterface(this, resourceString, scriptName);
+
+})(this);
