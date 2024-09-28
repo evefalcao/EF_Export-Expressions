@@ -8,11 +8,12 @@
  *========================================================================**/
 
 (function(thisObj) {
+
     var resourceString =
         "group { \
             orientation:'column', \
             alignment: ['fill', 'top'], \
-            minimumSize: [200, 200], \
+            minimumSize: [250, 150], \
             pathGroup: Panel { \
                 alignment: ['fill', 'center'], \
                 text: 'Export to folder', \
@@ -55,11 +56,8 @@
             }, \
         }"
     
-    var pathButton;
-    var pathText;
-    var newFolderCheckbox;
-    var dropDownMenu;
-    var applyButton;
+    
+    var pathButton, pathText, newFolderCheckbox, dropDownMenu, applyButton, selectedPath, projectPath, selectedFolder, filePath;
 
     function createUserInterface(thisObj, userInterfaceString, scriptName) {
 
@@ -108,6 +106,30 @@
         applyButton.onClick = function() {
             var selectedIndex = dropDownMenu.selection.index;
 
+            if (project.file != null) {
+                projectPath = project.file;
+            } else {
+                // Prompt the user to save the project
+                alert("Please save your project to use Export Expressions.");
+                var saveFile = File.saveDialog("Save Project As");
+                
+                if (saveFile != null) {
+                    project.save(saveFile);
+                    projectPath = project.file;
+                }
+            }
+
+            var fullProjectName = projectPath.toString();
+            var lastSlashIndex = fullProjectName.lastIndexOf(separator);
+            var projectName = fullProjectName.substring(lastSlashIndex + 1).replace(".aep", "");
+
+            // Check if project is saved and define the filePath
+            if (projectPath != null) {
+                filePath = projectPath.toString().replace(/\/[^\/]*$/, "");
+            } else {
+                alert("Save your project to continue.");
+            }
+
             // Fallback to filePath if selectedPath is undefined
             if (selectedPath != null) {
                 var exportPath = selectedPath;
@@ -139,37 +161,10 @@
     }
 
     var scriptName = "Export Expressions";
-    var UI = createUserInterface(this, resourceString, scriptName);
+    var UI = createUserInterface(thisObj, resourceString, scriptName);
     var project = app.project;
-    var selectedPath, projectPath, selectedFolder, filePath;
     var separator = "/";
     var expressions = [];
-
-    if (project.file != null) {
-        projectPath = project.file;
-    } else {
-        // Prompt the user to save the project
-        alert("Please save your project to use Export Expressions.");
-        var saveFile = File.saveDialog("Save Project As");
-        
-        if (saveFile != null) {
-            project.save(saveFile);
-            projectPath = project.file;
-        }
-    }
-
-    var fullProjectName = projectPath.toString();
-    var lastSlashIndex = fullProjectName.lastIndexOf(separator);
-    var projectName = fullProjectName.substring(lastSlashIndex + 1).replace(".aep", "");
-
-    // Check if project is saved and define the filePath
-    if (projectPath != null) {
-        filePath = projectPath.toString().replace(/\/[^\/]*$/, "");
-    } else {
-        alert("Save your project to continue.");
-    }
-
-
 
     // Primary functions //
     function exportActiveComp(filePath, projectName, expressions) {
