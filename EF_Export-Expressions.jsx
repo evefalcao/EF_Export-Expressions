@@ -60,6 +60,19 @@
     var pathButton, pathText, newFolderCheckbox, dropDownMenu, applyButton, selectedPath, projectPath, selectedFolder, filePath,
         fullProjectName, lastSlashIndex, projectName;
 
+    var project = app.project;
+    var separator = "/";
+    var expressions = [];
+    projectPath = (project.file != null) ? project.file : null;
+
+    // Define the filePath from saved project
+    if (projectPath != null) {
+        filePath = projectPath.fullName.toString().replace(/\/[^\/]*$/, ""); // Remove everything after the last "/"
+        // alert(filePath);
+    } else {
+        // alert("Save your project to continue.");
+    }
+
     function createUserInterface(thisObj, userInterfaceString, scriptName) {
 
         var myPanel = (thisObj instanceof Panel) ? thisObj : new Window("palette", scriptName, undefined, { resizeable: true });
@@ -125,14 +138,6 @@
             lastSlashIndex = fullProjectName.lastIndexOf(separator);
             projectName = fullProjectName.substring(lastSlashIndex + 1).replace(".aep", "");
 
-            // Define the filePath from saved project
-            if (projectPath != null) {
-                filePath = projectPath.fullName.toString().replace(/\/[^\/]*$/, ""); // Remove everything after the last "/"
-                // alert(filePath);
-            } else {
-                alert("Save your project to continue.");
-            }
-
             // If selectedPath is undefined export to the project location
             if (selectedPath != null) {
                 var exportPath = selectedPath;
@@ -167,9 +172,6 @@
 
     var scriptName = "Export Expressions";
     var UI = createUserInterface(thisObj, resourceString, scriptName);
-    var project = app.project;
-    var separator = "/";
-    var expressions = [];
 
     // Primary functions //
     function exportActiveComp(filePath, projectName, expressions) {
