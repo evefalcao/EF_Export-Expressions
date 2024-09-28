@@ -57,7 +57,8 @@
         }"
     
     
-    var pathButton, pathText, newFolderCheckbox, dropDownMenu, applyButton, selectedPath, projectPath, selectedFolder, filePath;
+    var pathButton, pathText, newFolderCheckbox, dropDownMenu, applyButton, selectedPath, projectPath, selectedFolder, filePath,
+        fullProjectName, lastSlashIndex, projectName;
 
     function createUserInterface(thisObj, userInterfaceString, scriptName) {
 
@@ -106,10 +107,10 @@
         applyButton.onClick = function() {
             var selectedIndex = dropDownMenu.selection.index;
 
+            // Prompt the user to save the project if project isn't saved
             if (project.file != null) {
                 projectPath = project.file;
             } else {
-                // Prompt the user to save the project
                 alert("Please save your project to use Export Expressions.");
                 var saveFile = File.saveDialog("Save Project As");
                 
@@ -119,24 +120,27 @@
                 }
             }
 
-            var fullProjectName = projectPath.toString();
-            var lastSlashIndex = fullProjectName.lastIndexOf(separator);
-            var projectName = fullProjectName.substring(lastSlashIndex + 1).replace(".aep", "");
+            // Get project name from projectPath
+            fullProjectName = projectPath.toString();
+            lastSlashIndex = fullProjectName.lastIndexOf(separator);
+            projectName = fullProjectName.substring(lastSlashIndex + 1).replace(".aep", "");
 
-            // Check if project is saved and define the filePath
+            // Define the filePath from saved project
             if (projectPath != null) {
-                filePath = projectPath.toString().replace(/\/[^\/]*$/, "");
+                filePath = projectPath.fullName.toString().replace(/\/[^\/]*$/, ""); // Remove everything after the last "/"
+                alert(filePath)
             } else {
                 alert("Save your project to continue.");
             }
 
-            // Fallback to filePath if selectedPath is undefined
+            // If selectedPath is undefined export to the project location
             if (selectedPath != null) {
                 var exportPath = selectedPath;
             } else {
                 selectedPath = filePath;
             }
 
+            // Creates the "Expressions" folder if it needed
             if (newFolderCheckbox.value) {
                 if (!exportPath.includes("\\Expressions")) {
                     var expressionsFolder = new Folder(exportPath + "\\Expressions");
@@ -145,8 +149,9 @@
                     }
                 }
             }
-            exportPath = (expressionsFolder != null) ? expressionsFolder.fullName : selectedPath;
 
+            // Export to the expressions folder if needeed, else export to selectedPath
+            exportPath = (expressionsFolder != null) ? expressionsFolder.fullName : selectedPath;
 
             if (selectedIndex === 0) { // Active Comp
                 exportActiveComp(exportPath, projectName, expressions);
