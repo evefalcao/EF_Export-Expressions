@@ -128,7 +128,7 @@
             // Define the filePath from saved project
             if (projectPath != null) {
                 filePath = projectPath.fullName.toString().replace(/\/[^\/]*$/, ""); // Remove everything after the last "/"
-                alert(filePath)
+                // alert(filePath);
             } else {
                 alert("Save your project to continue.");
             }
