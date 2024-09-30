@@ -29,7 +29,7 @@
 
 ## Usage
 
-![UI.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/f4d7b7eb-2d84-4662-8874-f3d3e963ac90/304340c7-e5b1-48e7-aab1-d95cc24cd70f/UI.png)
+![UI.png](https://github.com/evefalcao/EF_Export-Expressions/blob/main/UI.png?raw=true)
 
 1. Open After Effects and load a composition.
 2. Run the script:
