@@ -15,7 +15,7 @@
 ## Installation
 
 1. Download the script from the [GitHub repository](https://github.com/evefalcao/EF_Export-Expressions/blob/main/EF_Export-Expressions.jsx).
-2. Copy the script file (`Manipulate-Anchor-Point.jsx`) to your After Effects scripts folder:
+2. Copy the script file (`EF_Export-Expressions.jsx`) to your After Effects scripts folder:
     - **Windows**: `C:\Program Files\Adobe\Adobe After Effects (version)\Support Files\Scripts\ScriptUI Panels`
     - **MaC OS:** Available soon
 3. Alternatively, in After Effects, go to `File > Scripts > Install ScriptUI Panel` select the script file (`EF_Export-Expressions.jsx`) and restart After Effects.
