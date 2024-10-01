@@ -13,7 +13,7 @@
         "group { \
             orientation:'column', \
             alignment: ['fill', 'top'], \
-            minimumSize: [350, 150], \
+            minimumSize: [200, 150], \
             pathGroup: Panel { \
                 alignment: ['fill', 'center'], \
                 text: 'Export to folder', \
