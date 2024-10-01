@@ -13,7 +13,7 @@
         "group { \
             orientation:'column', \
             alignment: ['fill', 'top'], \
-            minimumSize: [250, 150], \
+            minimumSize: [350, 150], \
             pathGroup: Panel { \
                 alignment: ['fill', 'center'], \
                 text: 'Export to folder', \
@@ -61,16 +61,13 @@
         fullProjectName, lastSlashIndex, projectName;
 
     var project = app.project;
-    var separator = "/";
+    var separator = ($.os.indexOf("Windows") !== -1) ? "\\" : "/";
     var expressions = [];
     projectPath = (project.file != null) ? project.file : null;
 
     // Define the filePath from saved project
     if (projectPath != null) {
-        filePath = projectPath.fullName.toString().replace(/\/[^\/]*$/, ""); // Remove everything after the last "/"
-        // alert(filePath);
-    } else {
-        // alert("Save your project to continue.");
+        filePath = projectPath.fsName.replace(/[\/\\][^\/\\]*$/, "");
     }
 
     function createUserInterface(thisObj, userInterfaceString, scriptName) {
@@ -103,7 +100,7 @@
             // Update path based on checkbox state
             if (selectedFolder) {
                 // Update based on checkbox state
-                selectedPath = selectedFolder.fullName;
+                selectedPath = selectedFolder.fsName;
                 updatePathBasedOnCheckbox();
             } else {
                 // Fallback if no folder is selected
@@ -134,9 +131,7 @@
             }
 
             // Get project name from projectPath
-            fullProjectName = projectPath.toString();
-            lastSlashIndex = fullProjectName.lastIndexOf(separator);
-            projectName = fullProjectName.substring(lastSlashIndex + 1).replace(".aep", "");
+            projectName = projectPath.name.replace(".aep", "");
 
             // If selectedPath is undefined export to the project location
             if (selectedPath != null) {
@@ -147,8 +142,8 @@
 
             // Creates the "Expressions" folder if it needed
             if (newFolderCheckbox.value) {
-                if (!exportPath.includes("\\Expressions")) {
-                    var expressionsFolder = new Folder(exportPath + "\\Expressions");
+                if (!exportPath.includes(separator + "Expressions")) {
+                    var expressionsFolder = new Folder(exportPath + separator + "Expressions");
                     if (!expressionsFolder.exists) {
                         var created = expressionsFolder.create();
                     }
@@ -156,7 +151,7 @@
             }
 
             // Export to the expressions folder if needeed, else export to selectedPath
-            exportPath = (expressionsFolder != null) ? expressionsFolder.fullName : selectedPath;
+            exportPath = (expressionsFolder != null) ? expressionsFolder.fsName : selectedPath;
 
             if (selectedIndex === 0) { // Active Comp
                 exportActiveComp(exportPath, projectName, expressions);
@@ -169,9 +164,6 @@
 
         return UI;
     }
-
-    var scriptName = "Export Expressions";
-    var UI = createUserInterface(thisObj, resourceString, scriptName);
 
     // Primary functions //
     function exportActiveComp(filePath, projectName, expressions) {
@@ -223,7 +215,7 @@
         // Only proceed if there are expressions to export
         if (expressions.length != 0) {
             // Add project and comp name at the top of the file
-            var compString = "/*\n\tProject: " + projectName + "\n\tComposition: " + comp.name + "\n*/";
+            var compString = "/*\n\tProject: " + projectName + ".aep" + "\n\tComposition: " + comp.name + "\n*/";
             expressions.unshift(compString);
 
             // Join the array and save the file
@@ -251,13 +243,13 @@
 
         if (newFolderCheckbox.value) {
             // Checkbox is checked, add "Expressions" folder
-            folderPathFeedback = selectedFolder.fullName + separator + "Expressions";
+            folderPathFeedback = selectedFolder.fsName + separator + "Expressions";
         } else {
             // Checkbox is unchecked, show only the selected folder path
-            folderPathFeedback = selectedFolder.fullName;
+            folderPathFeedback = selectedFolder.fsName;
         }
         // Update the text field
-        pathText.text = folderPathFeedback;
+        pathText.text = folderPathFeedback.replace(/\//g, separator);
     }
 
     function processProperty(property, curLayerName, curLayerIndex, expressionsList) {
@@ -287,8 +279,8 @@
         var compName = comp.name;
 
         // Ensure the path ends with a separator (slash or backslash)
-        if (filePath.charAt(filePath.length - 1) !== "\\" && filePath.charAt(filePath.length - 1) !== "/") {
-            filePath += "\\";  // Use backslash for Windows paths
+        if (filePath.charAt(filePath.length - 1) !== separator) {
+            filePath += separator;
         }
 
         // var file = new File(filePath + projectName + "_" + compName + "_" + fileSuffix + extension);
@@ -301,5 +293,8 @@
             file.close();
         }
     }
+
+    var scriptName = "Export Expressions";
+    var UI = createUserInterface(thisObj, resourceString, scriptName);
 
 })(this);
