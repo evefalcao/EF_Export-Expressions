@@ -285,6 +285,7 @@
 
         // var file = new File(filePath + projectName + "_" + compName + "_" + fileSuffix + extension);
         var file = new File(filePath + projectName + "_" + compName + "_" + fileSuffix + extension);
+        file.encoding = "UTF-8";
 
         // Write the file
         if (file != null) {
