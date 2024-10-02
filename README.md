@@ -16,9 +16,13 @@
 
 1. Download the script from the [GitHub repository](https://github.com/evefalcao/EF_Export-Expressions/blob/main/EF_Export-Expressions.jsx).
 2. Copy the script file (`EF_Export-Expressions.jsx`) to your After Effects scripts folder:
-    - **Windows**: `C:\Program Files\Adobe\Adobe After Effects (version)\Support Files\Scripts\ScriptUI Panels`
+    - **Windows:** `C:\Program Files\Adobe\Adobe After Effects (version)\Support Files\Scripts\ScriptUI Panels`
     - **MaC OS:** `/Applications/Adobe After Effects (version)/Scripts/ScriptUI Panels`
 3. Alternatively, in After Effects, go to `File > Scripts > Install ScriptUI Panel` select the script file (`EF_Export-Expressions.jsx`) and restart After Effects.
+
+### Allow Scripts to write files and access the Network
+- **Windows:** `Select Edit > Preferences > Scripting & Expressions > select Allow Scripts To Write Files And Access Network.`
+- **MaC OS:** `Select After Effects > Preferences > Scripting & Expressions > select Allow Scripts To Write Files And Access Network.`
 
 ## Features
 
