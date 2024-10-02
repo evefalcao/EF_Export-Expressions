@@ -1,13 +1,13 @@
 /**========================================================================
  * ?                  EF_Export-Expressions.jsx
- * @author            Eveline Falcão (https://evelinefalcao.com)
+ * @author            Eveline Falcão <https://evelinefalcao.com>
  * @email             hello@evelinefalcao.com
  * @version           1.0.0
  * @createdFor        Adobe After Effects CC 2024 (Version 24.1.0 Build 78)
  * @description       Export expressions to .jsx files.
  *========================================================================**/
 
-(function(thisObj) {
+(function (thisObj) {
 
     var resourceString =
         "group { \
@@ -55,11 +55,9 @@
                 preferredSize: [100, 30], \
             }, \
         }"
-    
-    
-    var pathButton, pathText, newFolderCheckbox, dropDownMenu, applyButton, selectedPath, projectPath, selectedFolder, filePath,
-        fullProjectName, lastSlashIndex, projectName;
 
+
+    var pathButton, pathText, newFolderCheckbox, dropDownMenu, applyButton, selectedPath, projectPath, selectedFolder, filePath, projectName;
     var project = app.project;
     var separator = ($.os.indexOf("Windows") !== -1) ? "\\" : "/";
     var expressions = [];
@@ -77,7 +75,7 @@
         var UI = myPanel.add(userInterfaceString);
         myPanel.layout.layout(true);
         myPanel.layout.resize();
-        myPanel.onResizing = myPanel.onResize = function() {
+        myPanel.onResizing = myPanel.onResize = function () {
             this.layout.resize();
         }
 
@@ -94,7 +92,7 @@
         applyButton = UI.applyButton;
         dropDownMenu.selection = [0];
 
-        pathButton.onClick = function() {
+        pathButton.onClick = function () {
             selectedFolder = Folder.selectDialog("Choose a destination folder");
 
             // Update path based on checkbox state
@@ -109,21 +107,22 @@
             }
         }
 
-        newFolderCheckbox.onClick = function() {
+        newFolderCheckbox.onClick = function () {
             selectedFolder = (selectedFolder != null) ? selectedFolder : new Folder(filePath);
             updatePathBasedOnCheckbox();
         }
 
-        applyButton.onClick = function() {
+        applyButton.onClick = function () {
             var selectedIndex = dropDownMenu.selection.index;
+            var exportPath, expressionsFolder, createdFolder, saveFile;
 
             // Prompt the user to save the project if project isn't saved
             if (project.file != null) {
                 projectPath = project.file;
             } else {
                 alert("Please save your project to use Export Expressions.");
-                var saveFile = File.saveDialog("Save Project As");
-                
+                saveFile = File.saveDialog("Save Project As");
+
                 if (saveFile != null) {
                     project.save(saveFile);
                     projectPath = project.file;
@@ -135,7 +134,7 @@
 
             // If selectedPath is undefined export to the project location
             if (selectedPath != null) {
-                var exportPath = selectedPath;
+                exportPath = selectedPath;
             } else {
                 selectedPath = filePath;
             }
@@ -143,9 +142,9 @@
             // Creates the "Expressions" folder if it needed
             if (newFolderCheckbox.value) {
                 if (!exportPath.includes(separator + "Expressions")) {
-                    var expressionsFolder = new Folder(exportPath + separator + "Expressions");
+                    expressionsFolder = new Folder(exportPath + separator + "Expressions");
                     if (!expressionsFolder.exists) {
-                        var created = expressionsFolder.create();
+                        createdFolder = expressionsFolder.create();
                     }
                 }
             }
@@ -175,6 +174,7 @@
             alert("Click on the timeline to set the comp as active.");
         }
     }
+
 
     function exportSelectedComps(filePath, projectName, expressions) {
         var projSelection = app.project.selection;
@@ -232,7 +232,7 @@
         alert("Save your project to continue.");
         var saveFile = File.saveDialog("Save Project As");
         if (saveFile != null) {
-            app.project.save(saveFile); 
+            app.project.save(saveFile);
         } else {
             alert("Project must be saved to continue.");
         }
