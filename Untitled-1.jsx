@@ -2,7 +2,7 @@
  * ?                  EF_Export-Expressions.jsx
  * @author            Eveline Falcão <https://evelinefalcao.com>
  * @email             hello@evelinefalcao.com
- * @version           1.0.0
+ * @version           1.0.1
  * @createdFor        Adobe After Effects CC 2024 (Version 24.1.0 Build 78)
  * @description       Export expressions to .jsx files.
  *========================================================================**/
@@ -67,15 +67,7 @@
         filePath = projectPath.fsName.replace(/[\/\\][^\/\\]*$/, "");
     }
 
-    /**
-     * createUserInterface(): creates the user interface
-     * @param {Object} thisObj "this" object
-     * @param {String} userInterfaceString the resource string with the user interface elements
-     * @param {String} scriptName the script name
-     * @returns User Interface object.
-     */
     function createUserInterface(thisObj, userInterfaceString, scriptName) {
-
         var myPanel = (thisObj instanceof Panel) ? thisObj : new Window("palette", scriptName, undefined, { resizeable: true });
         if (myPanel == null) return myPanel;
         var UI = myPanel.add(userInterfaceString);
@@ -97,20 +89,19 @@
         dropDownMenu = UI.pathGroup.dropDownGroup.dropDown;
         applyButton = UI.applyButton;
         dropDownMenu.selection = [0];
-        
+
         pathButton.onClick = function () {
             selectedFolder = Folder.selectDialog("Choose a destination folder");
 
-            // Update path based on checkbox state
             if (selectedFolder) {
-                // Update based on checkbox state
                 selectedPath = selectedFolder.fsName;
                 updatePathBasedOnCheckbox();
             } else {
-                // Fallback if no folder is selected
                 selectedPath = filePath;
                 pathText.text = selectedPath;
             }
+
+            alert("Selected Path: " + selectedPath); // Debugging alert
         }
 
         newFolderCheckbox.onClick = function () {
@@ -122,7 +113,6 @@
             var selectedIndex = dropDownMenu.selection.index;
             var exportPath, expressionsFolder, createdFolder, saveFile;
 
-            // Prompt the user to save the project if project isn't saved
             if (project.file != null) {
                 projectPath = project.file;
             } else {
@@ -135,28 +125,30 @@
                 }
             }
 
-            // Get project name from projectPath
             projectName = projectPath.name.replace(".aep", "");
 
-            // If selectedPath is undefined export to the project location
             if (selectedPath != null) {
                 exportPath = selectedPath;
             } else {
                 selectedPath = filePath;
             }
 
-            // Creates the "Expressions" folder if it needed
             if (newFolderCheckbox.value) {
                 if (!exportPath.includes(separator + "Expressions")) {
                     expressionsFolder = new Folder(exportPath + separator + "Expressions");
                     if (!expressionsFolder.exists) {
                         createdFolder = expressionsFolder.create();
+                        if (!createdFolder) {
+                            alert("Failed to create folder. Please check your permissions.");
+                        } else {
+                            alert("Folder created: " + expressionsFolder.fsName); // Debugging alert
+                        }
                     }
                 }
             }
 
-            // Export to the expressions folder if needeed, else export to selectedPath
             exportPath = (expressionsFolder != null) ? expressionsFolder.fsName : selectedPath;
+            alert("Final Export Path: " + exportPath); // Debugging alert
 
             if (selectedIndex === 0) { // Active Comp
                 exportActiveComp(exportPath, projectName, expressions);
@@ -170,12 +162,7 @@
         return UI;
     }
 
-    /**
-     * exportActiveComp(): exports the expressions the active composition
-     * @param {String} filePath the path to the project file
-     * @param {String} projectName project name
-     * @param {Array} expressions the array of expressions
-     */
+    // Primary functions //
     function exportActiveComp(filePath, projectName, expressions) {
         var activeComp = app.project.activeItem;
 
@@ -186,12 +173,6 @@
         }
     }
 
-    /**
-     * exportSelectedComps(): exports the expressions from selected compositions
-     * @param {String} filePath the path to the project file
-     * @param {String} projectName project name
-     * @param {Array} expressions the array of expressions
-     */
     function exportSelectedComps(filePath, projectName, expressions) {
         var projSelection = app.project.selection;
 
@@ -204,12 +185,6 @@
         }
     }
 
-    /**
-     * exportAllComps(): exports the expressions from all compositions in the project
-     * @param {String} filePath the path to the project file
-     * @param {String} projectName project name
-     * @param {Array} expressions the array of expressions
-     */
     function exportAllComps(filePath, projectName, expressions) {
         var projItems = app.project.items;
 
@@ -222,13 +197,6 @@
         }
     }
 
-    /**
-     * processCompExpressions(): process the expressions of a single composition
-     * @param {CompItem} comp the composition to be processed
-     * @param {String} filePath the path to the project file
-     * @param {String} projectName project name
-     * @param {Array} expressions the array of expressions
-     */
     function processCompExpressions(comp, filePath, projectName, expressions) {
         var layers = comp.layers;
         expressions = [];
@@ -241,107 +209,36 @@
             processProperty(currentLayer, curLayerName, curLayerIndex, expressions);
         }
 
-        // Only proceed if there are expressions to export
         if (expressions.length != 0) {
-            // Add project and comp name at the top of the file
             var compString = "/*\n\tProject: " + projectName + ".aep" + "\n\tComposition: " + comp.name + "\n*/";
             expressions.unshift(compString);
 
-            // Join the array and save the file
             var expressionsString = expressions.join("\n\n\n\n");
-            saveFile(filePath, projectName, expressionsString, comp, ".jsx");
+            saveFile(filePath, projectName, "Expressions", ".jsx", expressionsString, comp);
 
-            // Reset the expressions array for the next comp
             expressions = [];
         }
     }
 
-    /**
-     * saveProject(): function to save the current project
-     */
-    function saveProject() {
-        alert("Save your project to continue.");
-        var saveFile = File.saveDialog("Save Project As");
-        if (saveFile != null) {
-            app.project.save(saveFile);
-        } else {
-            alert("Project must be saved to continue.");
-        }
-    }
-
-    /**
-     * updatePathBasedOnCheckbox(): updates the path text feedback on the User Interface.
-     */
-    function updatePathBasedOnCheckbox() {
-        var folderPathFeedback;
-
-        if (newFolderCheckbox.value) {
-            // Checkbox is checked, add "Expressions" folder
-            folderPathFeedback = selectedFolder.fsName + separator + "Expressions";
-        } else {
-            // Checkbox is unchecked, show only the selected folder path
-            folderPathFeedback = selectedFolder.fsName;
-        }
-        // Update the text field
-        pathText.text = folderPathFeedback.replace(/\//g, separator);
-    }
-
-    /**
-     * This function pushes the expressions of a property or propertyGroup to a given array.
-     * @param {PropertyBase} property A property or a layer
-     * @param {String} curLayerName Layer name
-     * @param {Number} curLayerIndex Layer index
-     * @param {Array} expressionsList Expressions list
-     */
-    function processProperty(property, curLayerName, curLayerIndex, expressionsList) {
-
-        // Pass a layer or a prop
-        if (property.propertyType == PropertyType.PROPERTY) { // Check if value is a single property and do something
-
-            if (property.expressionEnabled) {
-                var layerAndPropInfo = "// Layer " + curLayerIndex + ": \"" + curLayerName + "\" - " + property.name;
-                var exp = property.expression.replace(/[\r\n]+/g, "\n").trim();
-                var expression = layerAndPropInfo + "\n" + exp;
-                expressionsList.push(expression);
-            }
-
-        } else {
-
-            for (var i = 1; i <= property.numProperties; i++) {
-                processProperty(property.property(i), curLayerName, curLayerIndex, expressionsList);
-            }
-
-        }
-    }
-
-    /**
-     * This function saves a file with all the expressions from the target comp.
-     * @param {String} filePath destination path
-     * @param {String} projectName project name
-     * @param {Array} content the expressions array
-     * @param {CompItem} comp the target composition
-     * @param {String} fileFormat eg.: .jsx, .txt
-     * @param {String[]} fileSuffix (optional) suffix to be added at the end of each file
-     */
-    function saveFile(filePath, projectName, content, comp, fileFormat, fileSuffix) {
-        // Prompt to save the file
+    function saveFile(filePath, projectName, fileSuffix, fileFormat, content, comp) {
         var extension = fileFormat;
         var compName = comp.name;
-        fileSuffix = (fileSuffix != null) ? "_" + fileSuffix : "";
 
-        // Ensure the path ends with a separator (slash or backslash)
         if (filePath.charAt(filePath.length - 1) !== separator) {
             filePath += separator;
         }
 
-        var file = new File(filePath + projectName + "_" + compName + fileSuffix + extension);
+        var file = new File(filePath + projectName + "_" + compName + "_" + fileSuffix + extension);
         file.encoding = "UTF-8";
 
-        // Write the file
         if (file != null) {
-            file.open("w");
-            file.write(content);
-            file.close();
+            if (file.open("w")) {
+                file.write(content);
+                file.close();
+                alert("File successfully written: " + file.fsName); // Debugging alert
+            } else {
+                alert("Failed to write file. Please check your permissions.");
+            }
         }
     }
 
