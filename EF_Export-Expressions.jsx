@@ -64,7 +64,7 @@
 
     // Define the filePath from saved project
     if (projectPath != null) {
-        filePath = projectPath.toString().replace(/[\/\\][^\/\\]*$/, "");
+        filePath = decodeURI(projectPath.toString().replace(/[\/\\][^\/\\]*$/, ""));
     }
 
     /**
@@ -109,13 +109,11 @@
             } else {
                 // Fallback if no folder is selected
                 selectedPath = filePath;
-                // pathText.text = filePath;
                 updatePathBasedOnCheckbox(selectedPath);
             }
         }
 
         newFolderCheckbox.onClick = function () {
-            // selectedFolder = (selectedFolder != null) ? selectedFolder : new Folder(filePath);
             updatePathBasedOnCheckbox(selectedPath);
         }
 
@@ -251,7 +249,7 @@
 
             // Join the array and save the file
             var expressionsString = expressions.join("\n\n\n\n");
-            saveFile(filePath, projectName, expressionsString, comp, ".jsx");
+            saveFile(filePath, expressionsString, comp, ".jsx");
 
             // Reset the expressions array for the next comp
             expressions = [];
@@ -285,7 +283,6 @@
             // Checkbox is unchecked, show only the selected folder path
             folderPathFeedback = path;
         }
-        // alert("Folder Path feedback: "+ folderPathFeedback);
         // Update the text field
         pathText.text = folderPathFeedback.replace(/[\/\\]/g, separator);
     }
@@ -347,24 +344,25 @@
     /**
      * This function saves a file with all the expressions from the target comp.
      * @param {String} filePath destination path
-     * @param {String} projectName project name
      * @param {Array} content the expressions array
      * @param {CompItem} comp the target composition
      * @param {String} fileFormat eg.: .jsx, .txt
+     * @param {String} projectName project name
      * @param {String[]} fileSuffix (optional) suffix to be added at the end of each file
      */
-    function saveFile(filePath, projectName, content, comp, fileFormat, fileSuffix) {
+    function saveFile(filePath, content, comp, fileFormat, projectName, fileSuffix) {
         // Prompt to save the file
         var extension = fileFormat;
         var compName = comp.name;
         fileSuffix = (fileSuffix != null) ? "_" + fileSuffix : "";
+        projectName = (projectName != null) ? "_" + projectName : "";
 
         // Ensure the path ends with a separator (slash or backslash)
         if (filePath.charAt(filePath.length - 1) !== separator) {
             filePath += separator;
         }
 
-        var file = new File(filePath + projectName + "_" + compName + fileSuffix + extension);
+        var file = new File(filePath + projectName + compName + fileSuffix + extension);
         file.encoding = "UTF-8";
 
         // Write the file
