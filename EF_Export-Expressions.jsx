@@ -319,17 +319,27 @@
         }
     }
 
+    /**
+     * Removes whitespace from both ends of this string and returns a new string.
+     * @param {String} str string to be trimmed
+     * @returns string
+     */
     function trim (str) {
         return str.replace(/^\s+/,'').replace(/\s+$/,'');
     }
 
+    /**
+     * Determine whether a given string may be found within this string, returning true or false.
+     * @param {String} str the string to be evaluated
+     * @param {String} search the search term
+     * @param {Number[]} start start index
+     * @returns Boolean
+     */
     function includes(str, search, start) {
         // Set start position, defaulting to 0 if not provided
         var startPos = start || 0;
-      
         // Return false if the start position is out of bounds
         if (startPos >= str.length) return false;
-      
         // Check if the substring exists starting from startPos
         return str.indexOf(search, startPos) !== -1;
     }
