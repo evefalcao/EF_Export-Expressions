@@ -177,7 +177,7 @@
      * @param {Array} expressions the array of expressions
      */
     function exportActiveComp(filePath, projectName, expressions) {
-        var activeComp = app.project.activeItem;
+        var activeComp = project.activeItem;
 
         if (activeComp instanceof CompItem) {
             processCompExpressions(activeComp, filePath, projectName, expressions);
@@ -193,7 +193,7 @@
      * @param {Array} expressions the array of expressions
      */
     function exportSelectedComps(filePath, projectName, expressions) {
-        var projSelection = app.project.selection;
+        var projSelection = project.selection;
 
         for (var item = 0; item < projSelection.length; item++) {
             var curItem = projSelection[item];
@@ -211,7 +211,7 @@
      * @param {Array} expressions the array of expressions
      */
     function exportAllComps(filePath, projectName, expressions) {
-        var projItems = app.project.items;
+        var projItems = project.items;
 
         for (var item = 1; item <= projItems.length; item++) {
             var curItem = projItems[item];
@@ -263,7 +263,7 @@
         alert("Save your project to continue.");
         var saveFile = File.saveDialog("Save Project As");
         if (saveFile != null) {
-            app.project.save(saveFile);
+            project.save(saveFile);
         } else {
             alert("Project must be saved to continue.");
         }
