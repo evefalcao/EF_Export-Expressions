@@ -283,7 +283,7 @@
             folderPathFeedback = selectedFolder.fsName;
         }
         // Update the text field
-        pathText.text = folderPathFeedback.replace(/\//g, separator);
+        pathText.text = folderPathFeedback.replace(/[\/\\]/g, separator);
     }
 
     /**
