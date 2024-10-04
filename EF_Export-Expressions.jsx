@@ -145,10 +145,11 @@
             } else {
                 selectedPath = filePath;
             }
+            alert(exportPath)
 
             // Creates the "Expressions" folder if it needed
             if (newFolderCheckbox.value) {
-                if (!includes(exportPath.fsName, separator + "Expressions")) {
+                if (!includes(exportPath, separator + "Expressions")) {
                     expressionsFolder = new Folder(exportPath.fullName + separator + "Expressions");
                     if (!expressionsFolder.exists) {
                         createdFolder = expressionsFolder.create();
