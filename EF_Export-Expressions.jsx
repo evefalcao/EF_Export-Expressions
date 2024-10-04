@@ -64,7 +64,7 @@
 
     // Define the filePath from saved project
     if (projectPath != null) {
-        filePath = projectPath.fsName.replace(/[\/\\][^\/\\]*$/, "");
+        filePath = projectPath.toString().replace(/[\/\\][^\/\\]*$/, "");
     }
 
     /**
@@ -104,7 +104,7 @@
             // Update path based on checkbox state
             if (selectedFolder) {
                 // Update based on checkbox state
-                selectedPath = selectedFolder.fsName;
+                selectedPath = selectedFolder;
                 updatePathBasedOnCheckbox(selectedPath);
             } else {
                 // Fallback if no folder is selected
@@ -148,8 +148,8 @@
 
             // Creates the "Expressions" folder if it needed
             if (newFolderCheckbox.value) {
-                if (!exportPath.includes(separator + "Expressions")) {
-                    expressionsFolder = new Folder(exportPath + separator + "Expressions");
+                if (!includes(exportPath.fsName, separator + "Expressions")) {
+                    expressionsFolder = new Folder(exportPath.fullName + separator + "Expressions");
                     if (!expressionsFolder.exists) {
                         createdFolder = expressionsFolder.create();
                     }
@@ -157,7 +157,8 @@
             }
 
             // Export to the expressions folder if needeed, else export to selectedPath
-            exportPath = (expressionsFolder != null) ? expressionsFolder.fsName : selectedPath;
+            exportPath = (expressionsFolder != null) ? expressionsFolder : selectedPath;
+            exportPath = exportPath.toString();
 
             if (selectedIndex === 0) { // Active Comp
                 exportActiveComp(exportPath, projectName, expressions);
@@ -303,7 +304,8 @@
 
             if (property.expressionEnabled) {
                 var layerAndPropInfo = "// Layer " + curLayerIndex + ": \"" + curLayerName + "\" - " + property.name;
-                var exp = property.expression.replace(/[\r\n]+/g, "\n").trim();
+                var exp = property.expression.replace(/[\r\n]+/g, "\n");
+                exp = trim(exp);
                 var expression = layerAndPropInfo + "\n" + exp;
                 expressionsList.push(expression);
             }
@@ -315,6 +317,21 @@
             }
 
         }
+    }
+
+    function trim (str) {
+        return str.replace(/^\s+/,'').replace(/\s+$/,'');
+    }
+
+    function includes(str, search, start) {
+        // Set start position, defaulting to 0 if not provided
+        var startPos = start || 0;
+      
+        // Return false if the start position is out of bounds
+        if (startPos >= str.length) return false;
+      
+        // Check if the substring exists starting from startPos
+        return str.indexOf(search, startPos) !== -1;
     }
 
     /**
