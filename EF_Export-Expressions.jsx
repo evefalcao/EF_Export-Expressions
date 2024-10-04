@@ -145,7 +145,6 @@
             } else {
                 selectedPath = filePath;
             }
-            alert(exportPath)
 
             // Creates the "Expressions" folder if it needed
             if (newFolderCheckbox.value) {
