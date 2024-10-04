@@ -109,7 +109,7 @@
             } else {
                 // Fallback if no folder is selected
                 selectedPath = filePath;
-                pathText.text = selectedPath;
+                updatePathBasedOnCheckbox();
             }
         }
 
