@@ -105,17 +105,18 @@
             if (selectedFolder) {
                 // Update based on checkbox state
                 selectedPath = selectedFolder.fsName;
-                updatePathBasedOnCheckbox();
+                updatePathBasedOnCheckbox(selectedPath);
             } else {
                 // Fallback if no folder is selected
                 selectedPath = filePath;
-                updatePathBasedOnCheckbox();
+                // pathText.text = filePath;
+                updatePathBasedOnCheckbox(selectedPath);
             }
         }
 
         newFolderCheckbox.onClick = function () {
-            selectedFolder = (selectedFolder != null) ? selectedFolder : new Folder(filePath);
-            updatePathBasedOnCheckbox();
+            // selectedFolder = (selectedFolder != null) ? selectedFolder : new Folder(filePath);
+            updatePathBasedOnCheckbox(selectedPath);
         }
 
         applyButton.onClick = function () {
@@ -272,16 +273,18 @@
     /**
      * updatePathBasedOnCheckbox(): updates the path text feedback on the User Interface.
      */
-    function updatePathBasedOnCheckbox() {
+    function updatePathBasedOnCheckbox(path) {
         var folderPathFeedback;
+        path = path.toString();
 
         if (newFolderCheckbox.value) {
             // Checkbox is checked, add "Expressions" folder
-            folderPathFeedback = selectedFolder.fsName + separator + "Expressions";
+            folderPathFeedback = path + separator + "Expressions";
         } else {
             // Checkbox is unchecked, show only the selected folder path
-            folderPathFeedback = selectedFolder.fsName;
+            folderPathFeedback = path;
         }
+        // alert("Folder Path feedback: "+ folderPathFeedback);
         // Update the text field
         pathText.text = folderPathFeedback.replace(/[\/\\]/g, separator);
     }
