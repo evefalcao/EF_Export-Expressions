@@ -64,7 +64,7 @@
 
     // Define the filePath from saved project
     if (projectPath != null) {
-        filePath = decodeURI(projectPath.toString().replace(/[\/\\][^\/\\]*$/, ""));
+        filePath = getBaseDirectory(projectPath);
     }
 
     /**
@@ -122,15 +122,14 @@
             var exportPath, expressionsFolder, createdFolder, saveFile;
 
             // Prompt the user to save the project if project isn't saved
-            if (project.file != null) {
-                projectPath = project.file;
-            } else {
+            if (projectPath == null) {
                 alert("Please save your project to use Export Expressions.");
-                saveFile = File.saveDialog("Save Project As");
+                saveFile = File.saveDialog("Save Project As", ".aep");
 
                 if (saveFile != null) {
                     project.save(saveFile);
                     projectPath = project.file;
+                    filePath = getBaseDirectory(projectPath);
                 }
             }
 
@@ -255,20 +254,36 @@
             expressions = [];
         }
     }
-
+    
     /**
-     * saveProject(): function to save the current project
-     */
-    function saveProject() {
-        alert("Save your project to continue.");
-        var saveFile = File.saveDialog("Save Project As");
-        if (saveFile != null) {
-            project.save(saveFile);
+     * This function pushes the expressions of a property or propertyGroup to a given array.
+     * @param {PropertyBase} property A property or a layer
+     * @param {String} curLayerName Layer name
+     * @param {Number} curLayerIndex Layer index
+     * @param {Array} expressionsList Expressions list
+    */
+   function processProperty(property, curLayerName, curLayerIndex, expressionsList) {
+
+       // Pass a layer or a prop
+       if (property.propertyType == PropertyType.PROPERTY) { // Check if value is a single property and do something
+        
+        if (property.expressionEnabled) {
+                var layerAndPropInfo = "// Layer " + curLayerIndex + ": \"" + curLayerName + "\" - " + property.name;
+                var exp = property.expression.replace(/[\r\n]+/g, "\n");
+                exp = trim(exp);
+                var expression = layerAndPropInfo + "\n" + exp;
+                expressionsList.push(expression);
+            }
+
         } else {
-            alert("Project must be saved to continue.");
+            
+            for (var i = 1; i <= property.numProperties; i++) {
+                processProperty(property.property(i), curLayerName, curLayerIndex, expressionsList);
+            }
+            
         }
     }
-
+    
     /**
      * updatePathBasedOnCheckbox(): updates the path text feedback on the User Interface.
      */
@@ -285,35 +300,6 @@
         }
         // Update the text field
         pathText.text = folderPathFeedback.replace(/[\/\\]/g, separator);
-    }
-
-    /**
-     * This function pushes the expressions of a property or propertyGroup to a given array.
-     * @param {PropertyBase} property A property or a layer
-     * @param {String} curLayerName Layer name
-     * @param {Number} curLayerIndex Layer index
-     * @param {Array} expressionsList Expressions list
-     */
-    function processProperty(property, curLayerName, curLayerIndex, expressionsList) {
-
-        // Pass a layer or a prop
-        if (property.propertyType == PropertyType.PROPERTY) { // Check if value is a single property and do something
-
-            if (property.expressionEnabled) {
-                var layerAndPropInfo = "// Layer " + curLayerIndex + ": \"" + curLayerName + "\" - " + property.name;
-                var exp = property.expression.replace(/[\r\n]+/g, "\n");
-                exp = trim(exp);
-                var expression = layerAndPropInfo + "\n" + exp;
-                expressionsList.push(expression);
-            }
-
-        } else {
-
-            for (var i = 1; i <= property.numProperties; i++) {
-                processProperty(property.property(i), curLayerName, curLayerIndex, expressionsList);
-            }
-
-        }
     }
 
     /**
@@ -339,6 +325,15 @@
         if (startPos >= str.length) return false;
         // Check if the substring exists starting from startPos
         return str.indexOf(search, startPos) !== -1;
+    }
+
+    /**
+     * Remove the last part of the path (file name or last folder) and decode URI-encoded characters
+     * @param {String} path The full path to a file or directory.
+     * @returns {String} The decoded base directory path with the last segment removed.
+     */
+    function getBaseDirectory(path) {
+        return decodeURI(path.toString().replace(/[\/\\][^\/\\]*$/, ""));
     }
 
     /**
