@@ -97,7 +97,7 @@
         dropDownMenu = UI.pathGroup.dropDownGroup.dropDown;
         applyButton = UI.applyButton;
         dropDownMenu.selection = [0];
-        
+
         pathButton.onClick = function () {
             selectedFolder = Folder.selectDialog("Choose a destination folder");
 
@@ -254,7 +254,7 @@
             expressions = [];
         }
     }
-    
+
     /**
      * This function pushes the expressions of a property or propertyGroup to a given array.
      * @param {PropertyBase} property A property or a layer
@@ -262,28 +262,23 @@
      * @param {Number} curLayerIndex Layer index
      * @param {Array} expressionsList Expressions list
     */
-   function processProperty(property, curLayerName, curLayerIndex, expressionsList) {
-
-       // Pass a layer or a prop
-       if (property.propertyType == PropertyType.PROPERTY) { // Check if value is a single property and do something
-        
-        if (property.expressionEnabled) {
+    function processProperty(property, curLayerName, curLayerIndex, expressionsList) {
+        // Pass a layer or a prop
+        if (property.propertyType == PropertyType.PROPERTY) { // Check if value is a single property and do something
+            if (property.expressionEnabled) {
                 var layerAndPropInfo = "// Layer " + curLayerIndex + ": \"" + curLayerName + "\" - " + property.name;
                 var exp = property.expression.replace(/[\r\n]+/g, "\n");
                 exp = trim(exp);
                 var expression = layerAndPropInfo + "\n" + exp;
                 expressionsList.push(expression);
             }
-
         } else {
-            
             for (var i = 1; i <= property.numProperties; i++) {
                 processProperty(property.property(i), curLayerName, curLayerIndex, expressionsList);
             }
-            
         }
     }
-    
+
     /**
      * updatePathBasedOnCheckbox(): updates the path text feedback on the User Interface.
      */
@@ -307,8 +302,8 @@
      * @param {String} str string to be trimmed
      * @returns string
      */
-    function trim (str) {
-        return str.replace(/^\s+/,'').replace(/\s+$/,'');
+    function trim(str) {
+        return str.replace(/^\s+/, '').replace(/\s+$/, '');
     }
 
     /**
